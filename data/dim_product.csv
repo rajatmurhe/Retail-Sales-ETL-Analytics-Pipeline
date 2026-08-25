@@ -1,0 +1,6 @@
+product_id,product_name,category,price,cost
+P02,Mouse,Electronics,25,10
+P05,Pen,Office Supplies,5,1
+P03,Desk,Furniture,150,80
+P04,Chair,Furniture,100,50
+P01,Laptop,Electronics,800,600
