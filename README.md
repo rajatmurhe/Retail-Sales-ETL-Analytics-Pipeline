@@ -8,10 +8,6 @@
 ### 🔍 SQL Analytics Validation
 ![SQL Query Results](screenshots/sql_results.png)
 
-### 📂 Repository & Folder Structure
-![GitHub Repository Structure](screenshots/Screenshot%202026-08-25%20at%207.30.59%E2%80%AFPM.png)
-![Local Folder Structure](screenshots/Screenshot%202026-08-25%20at%207.31.10%E2%80%AFPM.png)
----
 
 ## Overview
 An end-to-end Data Engineering and Business Intelligence project that extracts raw retail transaction data, cleans and transforms it using Python and Pandas, loads it into a MySQL Star Schema data warehouse, and visualizes key business KPIs through an interactive Power BI dashboard.
