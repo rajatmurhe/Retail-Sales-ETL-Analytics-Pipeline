@@ -1,15 +1,16 @@
 # Retail Sales ETL & Analytics Pipeline
 
+# 🛒 Retail Sales ETL & Analytics Pipeline
+
 ### 📊 Power BI Dashboard
-![Power BI Dashboard](dashboard.png)
+![Power BI Dashboard](screenshots/dashboard.png)
 
-### SQL Analytics Validation
-![SQL Query Results](sql_results.png)
+### 🔍 SQL Analytics Validation
+![SQL Query Results](screenshots/sql_results.png)
 
-### Repository & Folder Structure
-![GitHub Repository Structure](Screenshot%202026-08-25%20at%207.30.59%E2%80%AFPM.png)
-![Local Folder Structure](Screenshot%202026-08-25%20at%207.31.10%E2%80%AFPM.png)
-
+### 📂 Repository & Folder Structure
+![GitHub Repository Structure](screenshots/Screenshot%202026-08-25%20at%207.30.59%E2%80%AFPM.png)
+![Local Folder Structure](screenshots/Screenshot%202026-08-25%20at%207.31.10%E2%80%AFPM.png)
 ---
 
 ## Overview
