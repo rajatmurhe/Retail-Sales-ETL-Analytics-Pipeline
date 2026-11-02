@@ -1,24 +1,61 @@
+"""Load step: creates the star schema with primary and foreign keys, then loads data/processed/*.csv.
+
+The connection string comes from the RETAIL_DB_URL environment variable (never hardcode passwords):
+    MySQL : export RETAIL_DB_URL="mysql+pymysql://<user>:<password>@localhost/retail_db"
+    Local : defaults to SQLite (retail_dw.db) so the pipeline runs with no database server.
+
+Each run is a full refresh: tables are dropped and recreated, so rerunning gives the same result.
+"""
+import os
+
 import pandas as pd
-from sqlalchemy import create_engine
+from sqlalchemy import (Column, Date, ForeignKey, Integer, MetaData, Numeric, String, Table,
+                        create_engine)
 
-print("Starting Load Phase...")
+DB_URL = os.environ.get("RETAIL_DB_URL", "sqlite:///retail_dw.db")
+IN_DIR = os.path.join("data", "processed")
 
-# 1. Connect to MySQL (Change 'your_password' to your actual password)
-# Format: mysql+pymysql://username:password@localhost/database_name
-engine = create_engine("mysql+pymysql://root:708970@localhost/retail_db")
+metadata = MetaData()
+dim_customer = Table("dim_customer", metadata,
+                     Column("customer_id", String(10), primary_key=True),
+                     Column("customer_name", String(50), nullable=False),
+                     Column("city", String(30), nullable=False))
+dim_product = Table("dim_product", metadata,
+                    Column("product_id", String(10), primary_key=True),
+                    Column("product_name", String(50), nullable=False),
+                    Column("category", String(30), nullable=False),
+                    Column("price", Numeric(10, 2), nullable=False),
+                    Column("cost", Numeric(10, 2), nullable=False))
+dim_date = Table("dim_date", metadata,
+                 Column("date_id", Integer, primary_key=True),
+                 Column("date", Date, nullable=False),
+                 Column("year", Integer, nullable=False),
+                 Column("month", Integer, nullable=False),
+                 Column("day", Integer, nullable=False))
+fact_sales = Table("fact_sales", metadata,
+                   Column("transaction_id", String(10), primary_key=True),
+                   Column("date_id", Integer, ForeignKey("dim_date.date_id"), nullable=False),
+                   Column("customer_id", String(10), ForeignKey("dim_customer.customer_id"), nullable=False),
+                   Column("product_id", String(10), ForeignKey("dim_product.product_id"), nullable=False),
+                   Column("quantity", Integer, nullable=False),
+                   Column("revenue", Numeric(12, 2), nullable=False),
+                   Column("profit", Numeric(12, 2), nullable=False))
 
-# 2. Read the clean CSVs we just made
-print("Reading clean data...")
-dim_customer = pd.read_csv('data/processed/dim_customer.csv')
-dim_product = pd.read_csv('data/processed/dim_product.csv')
-dim_date = pd.read_csv('data/processed/dim_date.csv')
-fact_sales = pd.read_csv('data/processed/fact_sales.csv')
+LOAD_ORDER = [dim_customer, dim_product, dim_date, fact_sales]  # dimensions before the fact
 
-# 3. Load them into MySQL
-print("Loading into MySQL Data Warehouse...")
-dim_customer.to_sql('dim_customer', con=engine, if_exists='replace', index=False)
-dim_product.to_sql('dim_product', con=engine, if_exists='replace', index=False)
-dim_date.to_sql('dim_date', con=engine, if_exists='replace', index=False)
-fact_sales.to_sql('fact_sales', con=engine, if_exists='replace', index=False)
 
-print("SUCCESS! All 4 tables are now in MySQL.")
+def main(db_url: str = DB_URL):
+    engine = create_engine(db_url)
+    metadata.drop_all(engine)
+    metadata.create_all(engine)
+    with engine.begin() as conn:
+        for table in LOAD_ORDER:
+            df = pd.read_csv(os.path.join(IN_DIR, f"{table.name}.csv"))
+            if table is dim_date:
+                df["date"] = pd.to_datetime(df["date"]).dt.date
+            conn.execute(table.insert(), df.to_dict(orient="records"))
+            print(f"Loaded {len(df):>6} rows into {table.name}")
+
+
+if __name__ == "__main__":
+    main()
